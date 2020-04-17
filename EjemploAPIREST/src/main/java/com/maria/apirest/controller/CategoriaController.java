@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.maria.apirest.dto.CategoriaDTO;
 import com.maria.apirest.dto.CategoriaDTOConverter;
@@ -34,7 +35,7 @@ public class CategoriaController {
 		List<Categoria> result = categoriaRepositorio.findAll();
 
 		if (result.isEmpty()) {
-			return ResponseEntity.notFound().build();
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No hay categorías registradas");
 		} else {
 
 			List<CategoriaDTO> dtoList = result.stream().map(categoriaDTOConverter::convertToDto)
@@ -47,7 +48,11 @@ public class CategoriaController {
 	@GetMapping("/categoria/{id}")
 	public Categoria obtenerUna(@PathVariable Long id) {
 
-		return categoriaRepositorio.findById(id).orElseThrow(() -> new CategoriaNotFoundException(id));
+		try {
+			return categoriaRepositorio.findById(id).orElseThrow(() -> new CategoriaNotFoundException(id));
+		} catch(CategoriaNotFoundException ex) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
+		}
 	}
 	
 	@PostMapping("/categoria")

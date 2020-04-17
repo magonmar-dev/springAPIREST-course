@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.maria.apirest.dto.CreateProductoDTO;
 import com.maria.apirest.dto.ProductoDTO;
@@ -43,7 +44,7 @@ public class ProductoController {
 		List<Producto> result = productoRepositorio.findAll();
 
 		if (result.isEmpty()) {
-			return ResponseEntity.notFound().build();
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No hay productos registrados");
 		} else {
 
 			List<ProductoDTO> dtoList = result.stream().map(productoDTOConverter::convertToDto)
@@ -62,7 +63,11 @@ public class ProductoController {
 	@GetMapping("/producto/{id}")
 	public Producto obtenerUno(@PathVariable Long id) {
 
-		return productoRepositorio.findById(id).orElseThrow(() -> new ProductoNotFoundException(id));
+		try {
+			return productoRepositorio.findById(id).orElseThrow(() -> new ProductoNotFoundException(id));
+		} catch(ProductoNotFoundException ex) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
+		}
 	}
 
 	/**
