@@ -1,3 +1,7 @@
+insert into categoria (id, nombre) values (NEXTVAL('hibernate_sequence'), 'Comida');
+insert into categoria (id, nombre) values (NEXTVAL('hibernate_sequence'), 'Bebida');
+insert into categoria (id, nombre) values (NEXTVAL('hibernate_sequence'), 'Complementos');
+
 insert into producto (id, nombre, precio) values (NEXTVAL('hibernate_sequence'), 'Juice - Orange, Concentrate', 91);
 insert into producto (id, nombre, precio) values (NEXTVAL('hibernate_sequence'), 'Beef - Ground, Extra Lean, Fresh', 87);
 insert into producto (id, nombre, precio) values (NEXTVAL('hibernate_sequence'), 'Cheese - Parmesan Grated', 39);

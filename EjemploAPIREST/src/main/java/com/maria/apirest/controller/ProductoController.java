@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.maria.apirest.dto.CreateProductoDTO;
 import com.maria.apirest.dto.ProductoDTO;
 import com.maria.apirest.dto.ProductoDTOConverter;
+import com.maria.apirest.error.ProductoNotFoundException;
 import com.maria.apirest.model.Categoria;
 import com.maria.apirest.model.CategoriaRepository;
 import com.maria.apirest.model.Producto;
@@ -38,6 +39,7 @@ public class ProductoController {
 	 */
 	@GetMapping("/producto")
 	public ResponseEntity<?> obtenerTodos() {
+		
 		List<Producto> result = productoRepositorio.findAll();
 
 		if (result.isEmpty()) {
@@ -49,7 +51,6 @@ public class ProductoController {
 
 			return ResponseEntity.ok(dtoList);
 		}
-
 	}
 
 	/**
@@ -59,12 +60,9 @@ public class ProductoController {
 	 * @return 404 si no encuentra el producto, 200 y el producto si lo encuentra
 	 */
 	@GetMapping("/producto/{id}")
-	public ResponseEntity<?> obtenerUno(@PathVariable Long id) {
-		Producto result = productoRepositorio.findById(id).orElse(null);
-		if (result == null)
-			return ResponseEntity.notFound().build();
-		else
-			return ResponseEntity.ok(result);
+	public Producto obtenerUno(@PathVariable Long id) {
+
+		return productoRepositorio.findById(id).orElseThrow(() -> new ProductoNotFoundException(id));
 	}
 
 	/**
@@ -74,9 +72,7 @@ public class ProductoController {
 	 * @return 201 y el producto insertado
 	 */
 	@PostMapping("/producto")
-	// public ResponseEntity<?> nuevoProducto(@RequestBody Producto nuevo) {
 	public ResponseEntity<?> nuevoProducto(@RequestBody CreateProductoDTO nuevo) {
-		// En este caso, para contrastar, lo hacemos manualmente
 		
 		// Este código sería más propio de un servicio. Lo implementamos aquí
 		// por no hacer más complejo el ejercicio.
@@ -95,15 +91,13 @@ public class ProductoController {
 	 * @return 200 Ok si la edición tiene éxito, 404 si no se encuentra el producto
 	 */
 	@PutMapping("/producto/{id}")
-	public ResponseEntity<?> editarProducto(@RequestBody Producto editar, @PathVariable Long id) {
+	public Producto editarProducto(@RequestBody Producto editar, @PathVariable Long id) {
 
 		return productoRepositorio.findById(id).map(p -> {
 			p.setNombre(editar.getNombre());
 			p.setPrecio(editar.getPrecio());
-			return ResponseEntity.ok(productoRepositorio.save(p));
-		}).orElseGet(() -> {
-			return ResponseEntity.notFound().build();
-		});
+			return productoRepositorio.save(p);
+		}).orElseThrow(() -> new ProductoNotFoundException(id));
 	}
 
 	/**
@@ -114,7 +108,11 @@ public class ProductoController {
 	 */
 	@DeleteMapping("/producto/{id}")
 	public ResponseEntity<?> borrarProducto(@PathVariable Long id) {
-		productoRepositorio.deleteById(id);
+		
+		Producto producto = productoRepositorio.findById(id)
+				.orElseThrow(() -> new ProductoNotFoundException(id));
+		
+		productoRepositorio.delete(producto);
 		return ResponseEntity.noContent().build();
 	}
 }
