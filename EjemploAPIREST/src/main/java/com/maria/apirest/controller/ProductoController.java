@@ -21,6 +21,7 @@ import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBui
 import com.maria.apirest.dto.CreateProductoDTO;
 import com.maria.apirest.dto.ProductoDTO;
 import com.maria.apirest.dto.ProductoDTOConverter;
+import com.maria.apirest.error.ApiErrorAttributes;
 import com.maria.apirest.error.ProductoNotFoundException;
 import com.maria.apirest.model.Categoria;
 import com.maria.apirest.model.CategoriaRepository;
@@ -28,6 +29,10 @@ import com.maria.apirest.model.Producto;
 import com.maria.apirest.model.ProductoRepository;
 import com.maria.apirest.upload.StorageService;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -68,8 +73,14 @@ public class ProductoController {
 	 * @param id
 	 * @return 404 si no encuentra el producto, 200 y el producto si lo encuentra
 	 */
+	@ApiOperation(value="Obtener un producto por su ID", notes="Provee un mecanismo para obtener todos los datos de un producto por su ID")
+	@ApiResponses(value= {
+			@ApiResponse(code=200, message="OK", response=Producto.class),
+			@ApiResponse(code=404, message="Not Found", response=ApiErrorAttributes.class),
+			@ApiResponse(code=500, message="Internal Server Error", response=ApiErrorAttributes.class)
+	})
 	@GetMapping("/producto/{id}")
-	public Producto obtenerUno(@PathVariable Long id) {
+	public Producto obtenerUno(@ApiParam(value="ID del producto", required=true, type = "long") @PathVariable Long id) {
 
 		try {
 			return productoRepositorio.findById(id).orElseThrow(() -> new ProductoNotFoundException(id));
