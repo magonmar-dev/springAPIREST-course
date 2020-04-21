@@ -21,6 +21,8 @@ public class Producto {
 	
 	private float precio;
 	
+	private String imagen;
+	
 	@ManyToOne
 	@JoinColumn(name="categoria_id")
 	private Categoria categoria;

@@ -8,5 +8,6 @@ public class ProductoDTO {
 	
 	private long id;
 	private String nombre;
+	private String image;
 	private String categoriaNombre;
 }

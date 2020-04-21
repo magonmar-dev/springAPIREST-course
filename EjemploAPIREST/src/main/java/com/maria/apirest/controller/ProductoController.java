@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,8 +12,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
 import com.maria.apirest.dto.CreateProductoDTO;
 import com.maria.apirest.dto.ProductoDTO;
@@ -22,6 +26,7 @@ import com.maria.apirest.model.Categoria;
 import com.maria.apirest.model.CategoriaRepository;
 import com.maria.apirest.model.Producto;
 import com.maria.apirest.model.ProductoRepository;
+import com.maria.apirest.upload.StorageService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,6 +38,7 @@ public class ProductoController {
 	private final ProductoRepository productoRepositorio;
 	private final CategoriaRepository categoriaRepositorio;
 	private final ProductoDTOConverter productoDTOConverter;
+	private final StorageService storageService;
 
 	/**
 	 * Obtenemos todos los productos
@@ -78,14 +84,29 @@ public class ProductoController {
 	 * @param nuevo
 	 * @return 201 y el producto insertado
 	 */
-	@PostMapping("/producto")
-	public ResponseEntity<?> nuevoProducto(@RequestBody CreateProductoDTO nuevo) {
+	@PostMapping(value = "/producto", consumes= MediaType.MULTIPART_FORM_DATA_VALUE) //Aunque no es obligatorio, podemos indicar que se consume multipart/form-data
+	public ResponseEntity<?> nuevoProducto(@RequestPart("nuevo") CreateProductoDTO nuevo, 
+			@RequestPart("file") MultipartFile file) {
 		
-		// Este código sería más propio de un servicio. Lo implementamos aquí
-		// por no hacer más complejo el ejercicio.
+		// Almacenamos el fichero y obtenemos su URL
+		String urlImagen = null;
+		
+		if (!file.isEmpty()) {
+			String imagen = storageService.store(file);
+			urlImagen = MvcUriComponentsBuilder
+						// El segundo argumento es necesario solo cuando queremos obtener la imagen
+						// En este caso tan solo necesitamos obtener la URL
+						.fromMethodName(FicherosController.class, "serveFile", imagen, null)  
+						.build().toUriString();
+		}
+		
+		// Construimos nuestro nuevo Producto a partir del DTO
+		// Como decíamos en ejemplos anteriores, esto podría ser más bien código
+		// de un servicio, pero lo dejamos aquí para no hacer más complejo el código.
 		Producto nuevoProducto = new Producto();
 		nuevoProducto.setNombre(nuevo.getNombre());
 		nuevoProducto.setPrecio(nuevo.getPrecio());
+		nuevoProducto.setImagen(urlImagen);
 		Categoria categoria = categoriaRepositorio.findById(nuevo.getCategoriaId()).orElse(null);
 		nuevoProducto.setCategoria(categoria);
 		return ResponseEntity.status(HttpStatus.CREATED).body(productoRepositorio.save(nuevoProducto));
