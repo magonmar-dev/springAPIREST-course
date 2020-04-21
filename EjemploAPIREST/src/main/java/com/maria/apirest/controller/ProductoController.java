@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor // anotación de Lombok que nos evita usar @Autowired en cada objeto
+// @CrossOrigin(origins = "http://localhost:9001")
 public class ProductoController {
 
 	private final ProductoRepository productoRepositorio;
@@ -38,6 +39,7 @@ public class ProductoController {
 	 * 
 	 * @return 404 si no hay productos, 200 y lista de productos si hay uno o más
 	 */
+	// @CrossOrigin(origins = "http://localhost:9001")
 	@GetMapping("/producto")
 	public ResponseEntity<?> obtenerTodos() {
 		
